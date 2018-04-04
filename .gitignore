@@ -1,4 +1,3 @@
-# Created by .ignore support plugin (hsz.mobi)
 ### Java template
 # Compiled class file
 *.class
@@ -32,3 +31,6 @@ gradle-app.setting
 # IntelliJ
 out/
 *.iml
+
+# DB file
+*.db
