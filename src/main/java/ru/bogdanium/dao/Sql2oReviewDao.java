@@ -48,6 +48,7 @@ public class Sql2oReviewDao implements ReviewDao {
         try (Connection connection = sql2o.open()) {
             return connection
                     .createQuery(SQL_GET_ALL_REVIEWS)
+                    .addColumnMapping("course_id", "courseId")
                     .executeAndFetch(Review.class);
         }
     }

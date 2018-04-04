@@ -3,9 +3,13 @@ package ru.bogdanium;
 import com.google.gson.Gson;
 import org.sql2o.Sql2o;
 import ru.bogdanium.dao.CourseDao;
+import ru.bogdanium.dao.ReviewDao;
 import ru.bogdanium.dao.Sql2oCourseDao;
+import ru.bogdanium.dao.Sql2oReviewDao;
 import ru.bogdanium.exception.ApiError;
+import ru.bogdanium.exception.DaoException;
 import ru.bogdanium.model.Course;
+import ru.bogdanium.model.Review;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,10 +30,12 @@ public class Api {
             datasourse = args[1];
         }
 
-
         Sql2o sql2o = new Sql2o(datasourse +
                 ";INIT=RUNSCRIPT from 'classpath:db/init.sql'", "", "");
+
         CourseDao courseDao = new Sql2oCourseDao(sql2o);
+        ReviewDao reviewDao = new Sql2oReviewDao(sql2o);
+
         Gson gson = new Gson();
 
         post("/courses", "application/json", (req, res) -> {
@@ -49,6 +55,24 @@ public class Api {
                 throw new ApiError(404, "Could not find course");
             }
             return course;
+        }, gson::toJson);
+
+        post("/courses/:courseId/reviews", "application/json", (req, res) -> {
+            int courseId = Integer.parseInt(req.params("courseId"));
+            Review review = gson.fromJson(req.body(), Review.class);
+            review.setCourseId(courseId);
+            try {
+                reviewDao.add(review);
+            } catch (DaoException e) {
+                throw new ApiError(500, e.getMessage());
+            }
+            res.status(201);
+            return review;
+        }, gson::toJson);
+
+        get("/courses/:courseId/reviews", "application/json", (req, res) -> {
+            int courseId = Integer.parseInt(req.params("courseId"));
+            return reviewDao.findByCourseId(courseId);
         }, gson::toJson);
 
         exception(ApiError.class, (e, req, res) -> {
