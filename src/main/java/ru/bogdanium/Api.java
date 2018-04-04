@@ -11,8 +11,20 @@ import static spark.Spark.*;
 public class Api {
     public static void main(String[] args) {
 
-        Sql2o sql2o = new Sql2o("jdbc:h2:C:\\Users\\Denis\\Dropbox\\Projects\\sparkjava\\course-reviews\\data\\reviews.db;" +
-                "INIT=RUNSCRIPT from 'classpath:db/init.sql'", "", "");
+        String datasourse = "jdbc:h2:C:\\Users\\Denis\\Dropbox\\Projects\\sparkjava\\course-reviews\\data\\reviews.db";
+
+        if (args.length > 0) {
+            if (args.length != 2) {
+                System.out.println("java Api <port> <datasourse>");
+                System.exit(0);
+            }
+            port(Integer.parseInt(args[0]));
+            datasourse = args[1];
+        }
+
+
+        Sql2o sql2o = new Sql2o(datasourse +
+                ";INIT=RUNSCRIPT from 'classpath:db/init.sql'", "", "");
         CourseDao courseDao = new Sql2oCourseDao(sql2o);
         Gson gson = new Gson();
 
