@@ -4,14 +4,18 @@ import com.google.gson.Gson;
 import org.sql2o.Sql2o;
 import ru.bogdanium.dao.CourseDao;
 import ru.bogdanium.dao.Sql2oCourseDao;
+import ru.bogdanium.exception.ApiError;
 import ru.bogdanium.model.Course;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static spark.Spark.*;
 
 public class Api {
     public static void main(String[] args) {
 
-        String datasourse = "jdbc:h2:C:\\Users\\Denis\\Dropbox\\Projects\\sparkjava\\course-reviews\\data\\reviews.db";
+        String datasourse = "jdbc:h2:~\\Dropbox\\Projects\\sparkjava\\course-reviews\\data\\reviews.db";
 
         if (args.length > 0) {
             if (args.length != 2) {
@@ -40,10 +44,21 @@ public class Api {
 
         get("/courses/:id", "applications/json", (req, res) -> {
             int id = Integer.parseInt(req.params("id"));
-            // TODO: What if this is not found?
             Course course = courseDao.findById(id);
+            if (course == null) {
+                throw new ApiError(404, "Could not find course");
+            }
             return course;
         }, gson::toJson);
+
+        exception(ApiError.class, (e, req, res) -> {
+            Map<String, Object> jsonMap = new HashMap<>();
+            jsonMap.put("status", e.getStatus());
+            jsonMap.put("errorMessage", e.getMessage());
+            res.type("application/json");
+            res.status(e.getStatus());
+            res.body(gson.toJson(jsonMap));
+        });
 
         after((req, res) -> {
             res.type("application/json");
